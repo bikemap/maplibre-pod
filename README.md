@@ -5,9 +5,9 @@
 [![License](https://img.shields.io/cocoapods/l/maplibre-pod.svg?style=flat)](https://cocoapods.org/pods/maplibre-pod)
 [![Platform](https://img.shields.io/cocoapods/p/maplibre-pod.svg?style=flat)](https://cocoapods.org/pods/maplibre-pod)
 
-## Example
+## Description
 
-To run the example project, clone the repo, and run `pod install` from the Example directory first.
+This package turns the MapLibre Metal edition into a pod, allowing it to depended on by other pods, like Mapvox navigation.
 
 ## Requirements
 
@@ -17,7 +17,7 @@ maplibre-pod is available through [CocoaPods](https://cocoapods.org). To install
 it, simply add the following line to your Podfile:
 
 ```ruby
-pod 'maplibre-pod'
+pod 'maplibre-pod', git => "https://github.com/hactar/maplibre-pod"
 ```
 
 ## Author
