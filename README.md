@@ -9,6 +9,12 @@
 
 This package turns the MapLibre Metal edition into a pod, allowing it to depended on by other pods, like Mapvox navigation.
 
+### Updating MetalAngle
+- download the .framework zips for iOS and Simulator
+- extract to -simulator and -iOS
+- use lipo to remove all archs except the ones we really need: iOS its arm64, simulator its arm64 and x86_64 *lipo -remove i386 MetalANGLE -output MetalAngle*
+- create the framework *xcodebuild -create-xcframework -framework simulator/MetalANGLE.framework -framework MetalANGLE.framework -output "MetalANGLE.xcframework"*
+
 ## Requirements
 
 ## Installation
