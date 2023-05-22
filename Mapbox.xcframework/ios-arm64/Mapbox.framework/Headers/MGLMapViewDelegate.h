@@ -324,7 +324,6 @@ NS_ASSUME_NONNULL_BEGIN
  */
 - (MGLUserLocationAnnotationViewStyle *)mapViewStyleForDefaultUserLocationAnnotationView:(MGLMapView *)mapView NS_SWIFT_NAME(mapView(styleForDefaultUserLocationAnnotationView:));
 
-
 /**
  Tells the delegate that the location of the user was updated.
 

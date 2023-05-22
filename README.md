@@ -7,7 +7,7 @@
 
 ## Description
 
-This package turns the MapLibre Metal edition into a pod, allowing it to depended on by other pods, like Mapvox navigation.
+This package turns the MapLibre Metal edition into a pod, allowing it to depended on by other pods, like Mapbox navigation. This branch includes a version which uses metal on simulator to prevent bugs, but uses pure MapLibre on device, which performs way better (smoother map scrolling)
 
 ## Requirements
 

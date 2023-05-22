@@ -100,6 +100,7 @@ NS_ASSUME_NONNULL_BEGIN
  */
 - (void)requestTemporaryFullAccuracyAuthorizationWithPurposeKey:(NSString *)purposeKey API_AVAILABLE(ios(14));
 #endif
+
 @required
 
 /**
@@ -224,7 +225,7 @@ NS_ASSUME_NONNULL_BEGIN
  @param manager The location manager reporting the change.
  */
 - (void)locationManagerDidChangeAuthorization:(id<MGLLocationManager>)manager;
-#endif
+#endif       
 
 @optional
 

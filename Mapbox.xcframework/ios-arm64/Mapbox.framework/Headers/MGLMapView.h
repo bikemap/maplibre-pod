@@ -6,13 +6,13 @@
 #import "MGLMapCamera.h"
 #import "MGLTypes.h"
 #import "MGLStyle.h"
-#import "MGLObserver.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
 @class MGLAnnotationView;
 @class MGLAnnotationImage;
 @class MGLUserLocation;
+@class MGLMapProjection;
 @class MGLPolyline;
 @class MGLPolygon;
 @class MGLShape;
@@ -189,7 +189,7 @@ FOUNDATION_EXTERN MGL_EXPORT MGLExceptionName const MGLUserLocationAnnotationTyp
  Simple map view</a> example to learn how to initialize a basic `MGLMapView`.
  */
 MGL_EXPORT
-@interface MGLMapView : UIView <MGLStylable, MGLObservable>
+@interface MGLMapView : UIView <MGLStylable>
 
 #pragma mark Creating Instances
 
@@ -208,8 +208,7 @@ MGL_EXPORT
 
  @param frame The frame for the view, measured in points.
  @param styleURL URL of the map style to display. The URL may be a full HTTP
-    or HTTPS URL, a Mapbox style URL
-    (`mapbox://styles/{user}/{style}`), or a path to a local file relative
+    or HTTPS URL, a canonical URL or a path to a local file relative
     to the application’s resource path. Specify `nil` for the default style.
  @return An initialized map view.
 
@@ -265,9 +264,8 @@ MGL_EXPORT
 /**
  URL of the style currently displayed in the receiver.
 
- The URL may be a full HTTP or HTTPS URL, a Mapbox
- style URL (`mapbox://styles/{user}/{style}`), or a path to a local file
- relative to the application’s resource path.
+ The URL may be a full HTTP or HTTPS URL, canonical URL, or
+ a path to a local file relative to the application’s resource path.
 
  If you set this property to `nil`, the receiver will use the default style
  and this property will automatically be set to that style’s URL.
@@ -330,6 +328,16 @@ MGL_EXPORT
 @property (nonatomic, readonly) UIView *scaleBar;
 
 /**
+ Sets whether the scale uses styles that make it easier to read on a dark styled map
+ */
+@property (nonatomic, assign) BOOL scaleBarShouldShowDarkStyles;
+
+/**
+ Sets whether the scale uses metric
+ */
+@property (nonatomic, assign) BOOL scaleBarUsesMetricSystem;
+
+/**
  The position of the scale bar. The default value is `MGLOrnamentPositionTopLeft`.
  */
 @property (nonatomic, assign) MGLOrnamentPosition scaleBarPosition;
@@ -378,7 +386,7 @@ MGL_EXPORT
 
 
 /**
- A view showing legally required copyright notices and telemetry settings,
+ A view showing legally required copyright notices,
  positioned at the bottom-right of the map view.
 
  If you choose to reimplement this view, assign the `-showAttribution:` method
@@ -392,13 +400,6 @@ MGL_EXPORT
     data. If that applies to this map view, do not hide this view or remove
     any notices from it.
 
- @note You are additionally
-    <a href="https://www.mapbox.com/tos/#[FamaFama]">required</a>
-    to provide users with the option to disable anonymous usage and location
-    sharing (telemetry). If this view is hidden, you must implement this
-    setting elsewhere in your app or via `Settings.bundle`. See our
-    <a href="https://docs.mapbox.com/help/how-mapbox-works/attribution/#mapbox-maps-sdk-for-ios">website</a> for
-    implementation help.
  */
 @property (nonatomic, readonly) UIButton *attributionButton;
 
@@ -413,7 +414,7 @@ MGL_EXPORT
 @property (nonatomic, assign) CGPoint attributionButtonMargins;
 
 /**
- Show the attribution and telemetry action sheet.
+ Show the attribution action sheet.
 
  This action is performed when the user taps on the attribution button provided
  by default via the `attributionButton` property. If you implement a custom
@@ -435,21 +436,6 @@ MGL_EXPORT
  @see `CADisplayLink.preferredFramesPerSecond`
  */
 @property (nonatomic, assign) MGLMapViewPreferredFramesPerSecond preferredFramesPerSecond;
-
-
-/**
- :nodoc:
- Whether map rendering should occur during the `UIApplicationStateInactive` state.
-
- The default value of this property is `YES`. This matches the behavior of SDKs
- pre 6.2.0.
-
- This property is ignored for map views where background rendering is permitted.
-
- This property should be considered undocumented, and prone to change.
- */
-@property (nonatomic, assign) BOOL renderingInInactiveStateEnabled;
-
 
 /**
  A Boolean value indicating whether the map should prefetch tiles.
@@ -761,6 +747,7 @@ MGL_EXPORT
  Default value is set to NO.
  */
 @property(nonatomic) BOOL anchorRotateOrZoomGesturesToCenterCoordinate;
+
 /**
  A Boolean value that determines whether the user will receive haptic feedback
  for certain interactions with the map.
@@ -1401,6 +1388,19 @@ MGL_EXPORT
 @property (nonatomic, assign) UIEdgeInsets contentInset;
 
 /**
+ The current edge insets of the current map view’s camera.
+
+ Camera edge insets are formed as accumulation of map view's content insets
+ and the edge padding passed to the method like `seCamera:...edgePadding:`,
+ `setVisibleCoordinates:...edgePadding:`, `showAnnotations:...edgePadding:` etc.
+
+ The camera edge insets influences the `centerCoordinate` of the viewport.
+ This value is read-only, in order to apply paddings,  use either persistent
+ `contentInset`, either transient `edgePadding` parameter of the `set...` methods.
+ */
+@property (nonatomic, readonly) UIEdgeInsets cameraEdgeInsets;
+
+/**
  Deprecated. Sets the distance from the edges of the map view’s frame to the edges
  of the map view’s logical viewport with an optional transition animation.
 
@@ -1533,6 +1533,12 @@ MGL_EXPORT
  @return The distance in meters spanned by a single point.
  */
 - (CLLocationDistance)metersPerPointAtLatitude:(CLLocationDegrees)latitude;
+
+/**
+ Returns the new map projection instance initialized with the map view,
+ i.e. with the current camera state.
+ */
+- (MGLMapProjection*)mapProjection;
 
 #pragma mark Annotating the Map
 
@@ -1901,7 +1907,7 @@ MGL_EXPORT
     the style URL to an explicitly versioned style using a convenience method
     like `+[MGLStyle outdoorsStyleURLWithVersion:]`, `MGLMapView`’s “Style URL”
     inspectable in Interface Builder, or a manually constructed `NSURL`. This
-    approach also avoids layer identifier name changes that will occur in the
+    approach also avoids layer identifer name changes that will occur in the
     default style’s layers over time.
 
  @param point A point expressed in the map view’s coordinate system.
@@ -1999,7 +2005,7 @@ MGL_EXPORT
  style URL to an explicitly versioned style using a convenience method like
  `+[MGLStyle outdoorsStyleURLWithVersion:]`, `MGLMapView`’s “Style URL”
  inspectable in Interface Builder, or a manually constructed `NSURL`. This
- approach also avoids layer identifier name changes that will occur in the
+ approach also avoids layer identifer name changes that will occur in the
  default style’s layers over time.
 
  @note Layer identifiers are not guaranteed to exist across styles or different
@@ -2007,7 +2013,7 @@ MGL_EXPORT
     the style URL to an explicitly versioned style using a convenience method
     like `+[MGLStyle outdoorsStyleURLWithVersion:]`, `MGLMapView`’s “Style URL”
     inspectable in Interface Builder, or a manually constructed `NSURL`. This
-    approach also avoids layer identifier name changes that will occur in the
+    approach also avoids layer identifer name changes that will occur in the
     default style’s layers over time.
 
  @param rect A rectangle expressed in the map view’s coordinate system.
@@ -2030,13 +2036,6 @@ MGL_EXPORT
  */
 @property (nonatomic) MGLMapDebugMaskOptions debugMask;
 
-/**
- :nodoc:
- Convenience method for subscribing to a single event. See `-[MGLObservable
- subscribeForObserver:events:]`.
- */
-- (void)subscribeForObserver:(nonnull MGLObserver *)observer
-                       event:(nonnull MGLEventType)event;
 @end
 
 NS_ASSUME_NONNULL_END
