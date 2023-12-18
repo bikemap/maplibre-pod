@@ -1,6 +1,0 @@
-framework module MetalANGLE {
-  umbrella header "MetalANGLE.h"
-
-  export *
-  module * { export * }
-}
